@@ -1,11 +1,25 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import login from '../components/Login'
+import main from '../components/Main'
+import firts from '../components/first'
+import contract from '../components/contract/Contract'
+import customer from '../components/customer/Customer'
+import sale from '../components/sale/Sale'
 Vue.use(VueRouter)
 
 const routes = [
   { path: '/', redirect: '/login' },
-  { path: '/login', component: login }
+  { path: '/login', component: login },
+  { path: '/main',
+    component: main,
+    redirect: '/first',
+    children: [
+      { path: '/first', component: firts },
+      { path: '/contract', component: contract },
+      { path: '/customer', component: customer },
+      { path: '/sale', component: sale }]
+  }
 
 ]
 
