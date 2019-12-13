@@ -6,6 +6,7 @@ import firts from '../components/first'
 import contract from '../components/contract/Contract'
 import customer from '../components/customer/Customer'
 import sale from '../components/sale/Sale'
+import goodsmanger from '../components/contract/GoodsManger'
 Vue.use(VueRouter)
 
 const routes = [
@@ -18,7 +19,8 @@ const routes = [
       { path: '/first', component: firts },
       { path: '/contract', component: contract },
       { path: '/customer', component: customer },
-      { path: '/sale', component: sale }]
+      { path: '/sale', component: sale },
+      { path: '/goodsmanger', component: goodsmanger }]
   }
 
 ]

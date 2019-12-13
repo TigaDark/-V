@@ -289,14 +289,16 @@ export default {
         this.$confirm('该合同未执行，不能发货，请先执行合同', '提示', {
           confirmButtonText: '确定'
         })
-      }
-      if (row.progress === 3) {
+      } else if (row.progress === 3) {
         this.$confirm('该合同已执行完毕，请处理其他合同', '提示', {
           confirmButtonText: '确定'
         })
-      }
-      if (row.progress === 1) {
-        // this.$router.push('/main')
+      } else if (row.purchase.ispay === 0) {
+        this.$confirm('该采购清单用户未支付，不能发货', '提示', {
+          confirmButtonText: '确定'
+        })
+      } else if (row.progress === 1) {
+        this.$router.push({ path: '/goodsmanger', query: { purchaseid: row.purchase.id } })
       }
     },
     // 监听添加用户对话框的关闭事件
