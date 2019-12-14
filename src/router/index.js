@@ -4,9 +4,10 @@ import login from '../components/Login'
 import main from '../components/Main'
 import firts from '../components/first'
 import contract from '../components/contract/Contract'
-import customer from '../components/customer/Customer'
 import sale from '../components/sale/Sale'
 import goodsmanger from '../components/contract/GoodsManger'
+import buygoods from '../components/goods/BuyGoods'
+import sentgoods from '../components/goods/SentGoods'
 Vue.use(VueRouter)
 
 const routes = [
@@ -18,9 +19,10 @@ const routes = [
     children: [
       { path: '/first', component: firts },
       { path: '/contract', component: contract },
-      { path: '/customer', component: customer },
       { path: '/sale', component: sale },
-      { path: '/goodsmanger', component: goodsmanger }]
+      { path: '/goodsmanger', component: goodsmanger },
+      { path: '/buygoods', component: buygoods },
+      { path: '/sentgoods', component: sentgoods }]
   }
 
 ]

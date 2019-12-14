@@ -3,76 +3,46 @@
     <!-- 面包屑导航区域 -->
     <el-breadcrumb separator-class="el-icon-arrow-right">
       <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>合同管理</el-breadcrumb-item>
-      <el-breadcrumb-item>合同查看</el-breadcrumb-item>
+      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
     </el-breadcrumb>
 
     <!-- 卡片视图区域 -->
     <el-card>
       <!-- 搜索与添加区域 -->
       <el-row :gutter="20">
-        <el-col :span="6">
+        <el-col :span="8">
           <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getUserList">
             <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
           </el-input>
         </el-col>
-        <el-col :span="4" :offset="14">
-          <el-button type="primary" @click="addDialogVisible = true" round>合同录入</el-button>
+        <el-col :span="4">
+          <el-button type="primary" @click="addDialogVisible = true">添加用户</el-button>
         </el-col>
       </el-row>
 
       <!-- 用户列表区域 -->
-      <el-table :data="contractList" border stripe>
+      <el-table :data="userlist" border stripe>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="客户姓名" prop="customer.name"></el-table-column>
-        <el-table-column label="销售人姓名" prop="user.realname"></el-table-column>
-        <el-table-column label="采购清单" width="100px">
+        <el-table-column label="姓名" prop="username"></el-table-column>
+        <el-table-column label="邮箱" prop="email"></el-table-column>
+        <el-table-column label="电话" prop="mobile"></el-table-column>
+        <el-table-column label="角色" prop="role_name"></el-table-column>
+        <el-table-column label="状态">
           <template slot-scope="scope">
-            <div style="float: left;margin-right: 15px">
-            {{scope.row.purchase.id}}
-            </div>
-            <el-tooltip effect="dark" content="清单详情查看" placement="top" :enterable="false">
-              <el-button type="success"  icon="el-icon-zoom-in" size="mini"  circle @click="showgoodsListDialogVisible(scope.row.purchase)"></el-button>
-            </el-tooltip>
-        </template>
-        </el-table-column>
-        <el-table-column label="总金额" prop="totalmoney"></el-table-column>
-        <el-table-column label="是否付款">
-          <template slot-scope="scope">
-            <!-- 付款显示按钮 -->
-            <el-button :type="scope.row.purchase.ispay ? 'primary' : 'danger'" size="mini" disabled>{{scope.row.purchase.ispay ? '已付款' : '未付款'}}</el-button>
+            <el-switch v-model="scope.row.mg_state" @change="userStateChanged(scope.row)">
+            </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="合同开始时间" width="150px">
-          <template slot-scope="scope">
-            <i class="el-icon-time"></i>
-            <span style="margin-left: 10px">{{ scope.row.start_timeStr}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="合同结束时间" width="150px">
-          <template slot-scope="scope">
-            <i class="el-icon-time"></i>
-            <span style="margin-left: 10px">{{ scope.row.end_timeStr}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="执行进度" width="200px">
-          <template slot-scope="scope">
-            <!-- 显示发货图标 -->
-            <el-button :type="contractprogress[scope.row.progress]" plain disabled size="small">{{contractprogressStr[scope.row.progress]}}</el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column label="操作" width="180px">
           <template slot-scope="scope">
             <!-- 修改按钮 -->
-            <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row)" :disabled="scope.row.progress!=0"></el-button>
-            <el-tooltip effect="dark" content="执行合同" placement="top" :enterable="false">
-            <!-- 执行合同按钮 -->
-            <el-button type="warning" icon="el-icon-check" size="mini" @click="editContractProcess(scope.row)" :disabled="scope.row.progress!=0"></el-button>
-            </el-tooltip>
-            <el-tooltip effect="dark" content="发货管理" placement="top" :enterable="false">
-              <!-- 执行合同按钮 -->
-              <el-button type="danger" icon="el-icon-s-goods" size="mini" @click="goodsManger(scope.row)" :disabled="scope.row.progress==2"></el-button>
-
+            <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row)"></el-button>
+            <!-- 删除按钮 -->
+            <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUserById(scope.row.id)"></el-button>
+            <!-- 分配角色按钮 -->
+            <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
+              <el-button type="warning" icon="el-icon-setting" size="mini" @click="setRole(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -83,27 +53,21 @@
       </el-pagination>
     </el-card>
 
-    <!-- 清单详情查看 -->
-    <el-dialog title="采购清单详情" :visible.sync="goodsListDialogVisible" width="50%">
-      <!-- 内容主体区域 -->
-      <ul>
-        <li :key="index" v-for="(goods,index) in goodsList">
-          <p>{{index+1}}. 商品名字：{{goods.goods.name}}    商品单价：{{goods.goods.price}}  购买数量：{{goods.quantity}}</p>
-        </li>
-      </ul>
-    </el-dialog>
-
     <!-- 添加用户的对话框 -->
     <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
       <!-- 内容主体区域 -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
         <el-form-item label="用户名" prop="username">
+          <el-input v-model="addForm.username"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
+          <el-input v-model="addForm.password"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addForm.email"></el-input>
         </el-form-item>
         <el-form-item label="手机" prop="mobile">
+          <el-input v-model="addForm.mobile"></el-input>
         </el-form-item>
       </el-form>
       <!-- 底部区域 -->
@@ -129,6 +93,24 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="editUserInfo">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 分配角色的对话框 -->
+    <el-dialog title="分配角色" :visible.sync="setRoleDialogVisible" width="50%" @close="setRoleDialogClosed">
+      <div>
+        <p>当前的用户：{{userInfo.username}}</p>
+        <p>当前的角色：{{userInfo.role_name}}</p>
+        <p>分配新角色：
+          <el-select v-model="selectedRoleId" placeholder="请选择">
+            <el-option v-for="item in rolesList" :key="item.id" :label="item.roleName" :value="item.id">
+            </el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="setRoleDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -171,24 +153,10 @@ export default {
         // 当前每页显示多少条数据
         pagesize: 2
       },
-      contractList: [],
+      userlist: [],
       total: 0,
-      // 控制 采购清单详情显示
-      goodsList: [],
-      goodsListDialogVisible: false,
       // 控制添加用户对话框的显示与隐藏
       addDialogVisible: false,
-      // 合同进度显示图标按钮
-      contractprogress: {
-        '0': 'warning',
-        '1': 'primary',
-        '2': 'info'
-      },
-      contractprogressStr: {
-        '0': '未执行',
-        '1': '执行中',
-        '2': '已完成'
-      },
       // 添加用户的表单数据
       addForm: {
         username: '',
@@ -251,85 +219,43 @@ export default {
     }
   },
   created () {
-    this.getContractList()
+    this.getUserList()
   },
   methods: {
-    async getContractList () {
-      const { data: res } = await this.$http.post('contract/getContractList', {
-        query: this.queryInfo.query,
-        pagenum: this.queryInfo.pagenum,
-        pagesize: this.queryInfo.pagesize
+    async getUserList () {
+      const { data: res } = await this.$http.get('users', {
+        params: this.queryInfo
       })
-      if (res.code !== 200) {
-        return this.$message.error('获取合同列表失败！')
+      if (res.meta.status !== 200) {
+        return this.$message.error('获取用户列表失败！')
       }
-      this.contractList = res.data.contractList.list
-      this.total = res.data.contractList.total
+      this.userlist = res.data.users
+      this.total = res.data.total
+      console.log(res)
     },
     // 监听 pagesize 改变的事件
     handleSizeChange (newSize) {
+      // console.log(newSize)
       this.queryInfo.pagesize = newSize
-      this.getContractList()
+      this.getUserList()
     },
     // 监听 页码值 改变的事件
     handleCurrentChange (newPage) {
+      console.log(newPage)
       this.queryInfo.pagenum = newPage
-      this.getContractList()
+      this.getUserList()
     },
-    // 用户确认执行合同
-    async editContractProcess (row) {
-      if (row.purchase.ispay === 0) {
-        this.$confirm('该采购清单用户未付款，不能执行', '提示', {
-          confirmButtonText: '确定'
-        })
-        return
+    // 监听 switch 开关状态的改变
+    async userStateChanged (userinfo) {
+      console.log(userinfo)
+      const { data: res } = await this.$http.put(
+        `users/${userinfo.id}/state/${userinfo.mg_state}`
+      )
+      if (res.meta.status !== 200) {
+        userinfo.mg_state = !userinfo.mg_state
+        return this.$message.error('更新用户状态失败！')
       }
-      // 询问用户是否确认执行
-      const contractResult = await this.$confirm(
-        '执行合同后将不能修改合同, 是否执行?',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).catch(err => err)
-      if (contractResult !== 'confirm') {
-        return this.$message.info('已取消执行合同')
-      }
-      // 提交修改合同进度 的请求 this.contractList.progress = 1
-      const { data: res } = await this.$http.post('contract/editContractProcess', row)
-      if (res.code !== 200) {
-        this.$message.error('执行合同失败！')
-      }
-      this.getContractList()
-      this.$message({
-        type: 'success',
-        message: '执行合同成功'
-      })
-    },
-    // 展示采购清单详情
-    async showgoodsListDialogVisible (purchase) {
-      this.goodsList = purchase.goodsQuantityList
-      this.goodsListDialogVisible = true
-    },
-    // 点击发货管理跳转界面
-    goodsManger (row) {
-      if (row.progress === 0) {
-        this.$confirm('该合同未执行，不能发货，请先执行合同', '提示', {
-          confirmButtonText: '确定'
-        })
-      } else if (row.progress === 3) {
-        this.$confirm('该合同已执行完毕，请处理其他合同', '提示', {
-          confirmButtonText: '确定'
-        })
-      } else if (row.purchase.ispay === 0) {
-        this.$confirm('该采购清单用户未支付，不能发货', '提示', {
-          confirmButtonText: '确定'
-        })
-      } else if (row.progress === 1) {
-        this.$router.push({ path: '/goodsmanger', query: { purchaseid: row.purchase.id } })
-      }
+      this.$message.success('更新用户状态成功！')
     },
     // 监听添加用户对话框的关闭事件
     addDialogClosed () {
@@ -355,6 +281,9 @@ export default {
     },
     // 展示编辑用户的对话框
     async showEditDialog (row) {
+      // console.log(id)
+      // const { data: res } = await this.$http.get('users/' + id)
+      // console.log(row)
       this.editForm = row
       this.editDialogVisible = true
     },
@@ -426,6 +355,32 @@ export default {
       this.rolesList = res.data
 
       this.setRoleDialogVisible = true
+    },
+    // 点击按钮，分配角色
+    async saveRoleInfo () {
+      if (!this.selectedRoleId) {
+        return this.$message.error('请选择要分配的角色！')
+      }
+
+      const { data: res } = await this.$http.put(
+        `users/${this.userInfo.id}/role`,
+        {
+          rid: this.selectedRoleId
+        }
+      )
+
+      if (res.meta.status !== 200) {
+        return this.$message.error('更新角色失败！')
+      }
+
+      this.$message.success('更新角色成功！')
+      this.getUserList()
+      this.setRoleDialogVisible = false
+    },
+    // 监听分配角色对话框的关闭事件
+    setRoleDialogClosed () {
+      this.selectedRoleId = ''
+      this.userInfo = {}
     }
   }
 }

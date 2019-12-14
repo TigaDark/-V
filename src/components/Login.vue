@@ -67,7 +67,7 @@ export default {
         //   1.2 token 只应在当前网站打开期间生效，所以将 token ,rid(以便查询菜单权限) 保存在 sessionStorage 中
         window.sessionStorage.setItem('token', res.data.token)
         window.sessionStorage.setItem('rid', res.data.user.role.id)
-        window.sessionStorage.setItem('rolename', res.data.user.role.roelname)
+        window.sessionStorage.setItem('rolename', res.data.user.role.rolename)
         window.sessionStorage.setItem('username', res.data.user.realname)
         // 2. 通过编程式导航跳转到后台主页，路由地址是 /main
         this.$router.push('/main')
