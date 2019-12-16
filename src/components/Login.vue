@@ -24,6 +24,7 @@
         </el-form>
       </div>
     </div>
+
 </template>
 
 <script>
@@ -88,7 +89,7 @@ export default {
 
   }
   .login_container {
-    background-color: #4498c4;
+    background-color: rgba(0,0,0,.1);
     height: 100%;
   }
 
@@ -96,11 +97,12 @@ export default {
     width: 400px;
     height: 400px;
     background-color: #fff;
-    border-radius: 3px;
+    border-radius: 5px;
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    box-shadow: 0 0 25px #cac6c6;
 
     .images {
       margin-top:90px;

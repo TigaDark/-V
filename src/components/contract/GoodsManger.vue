@@ -81,7 +81,7 @@ export default {
         return
       }
       const goodsResult = await this.$confirm(
-        '执行合同后将不能修改合同, 是否执行?',
+        '是否需要生成发货单?',
         '提示',
         {
           confirmButtonText: '确定',

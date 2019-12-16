@@ -6,6 +6,7 @@ import './assets/css/global.css'
 import './assets/fonts/iconfont.css'
 import axios from 'axios'
 import Qs from 'qs'
+import './plugins/iview.js'
 
 Vue.config.productionTip = false
 Vue.prototype.$http = axios
