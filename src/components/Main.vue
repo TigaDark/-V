@@ -23,7 +23,7 @@
     </el-header>
     <el-container>
       <el-aside :width="isCollapse ? '65px' : '210px'">
-        <div class="toggle-button" @click="toggleCollapse"><i class="el-icon-menu"></i></div>
+        <div class="toggle-button" @click="toggleCollapse"><Icon :type="isCollapse ? 'md-skip-forward': 'md-skip-backward'" /></div>
         <!-- 侧边栏菜单区域 -->
         <el-menu background-color="#333744" text-color="#fff" active-text-color="#409EFF" unique-opened :collapse="isCollapse" :collapse-transition="false" router :default-active="activePath">
           <!-- 一级菜单 -->
@@ -149,8 +149,7 @@ export default {
   }
 
   .toggle-button {
-    background-color: #4a5064;
-    font-size: 10px;
+    background-color: #808a9138;
     line-height: 24px;
     color: #fff;
     text-align: center;

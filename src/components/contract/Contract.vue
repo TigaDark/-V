@@ -10,13 +10,22 @@
     <!-- 卡片视图区域 -->
     <el-card>
       <!-- 搜索与添加区域 -->
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getUserList">
-            <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
-          </el-input>
+      <el-row :gutter="15">
+            <!--<el-input placeholder="请输入内容" v-model="input3" class="input-with-select">-->
+              <!--<el-select v-model="select" slot="prepend" placeholder="请选择"  style="width: 80px;">-->
+                <!--<el-option label="合同编号" value="1"></el-option>-->
+                <!--<el-option label="销售员姓名" value="2"></el-option>-->
+                <!--<el-option label="客户姓名" value="3"></el-option>-->
+              <!--</el-select>-->
+              <!--<el-button slot="append" icon="el-icon-search"></el-button>-->
+            <!--</el-input>-->
+        <el-col :span="4">
+          <el-input placeholder="请输入编号或客户销售员姓名" v-model="queryInfo.query" clearable @clear="getContractList" @input="filterQueryChange2"></el-input>
         </el-col>
-        <el-col :span="4" :offset="14">
+        <el-col :span="4">
+        <el-button icon="el-icon-search" circle @click="getContractList"></el-button>
+        </el-col>
+        <el-col :span="4" :offset="8">
           <el-button type="primary" @click="addDialogVisible = true" round>合同录入</el-button>
         </el-col>
       </el-row>
@@ -24,6 +33,7 @@
       <!-- 用户列表区域 -->
       <el-table :data="contractList" border stripe>
         <el-table-column type="index"></el-table-column>
+        <el-table-column label="合同编号" prop="id" sortable></el-table-column>
         <el-table-column label="客户姓名" prop="customer.name"></el-table-column>
         <el-table-column label="销售人姓名" prop="user.realname"></el-table-column>
         <el-table-column label="采购清单" width="100px">
@@ -32,33 +42,33 @@
             {{scope.row.purchase.id}}
             </div>
             <el-tooltip effect="dark" content="清单详情查看" placement="top" :enterable="false">
-              <el-button type="success"  icon="el-icon-zoom-in" size="mini"  circle @click="showgoodsListDialogVisible(scope.row.purchase)"></el-button>
+              <el-button type="success"   icon="el-icon-zoom-in" size="mini"  circle @click="showgoodsListDialogVisible(scope.row.purchase)"></el-button>
             </el-tooltip>
         </template>
         </el-table-column>
-        <el-table-column label="总金额" prop="totalmoney"></el-table-column>
-        <el-table-column label="是否付款">
-          <template slot-scope="scope">
+        <el-table-column label="总金额" prop="totalmoney" sortable></el-table-column>
+        <el-table-column label="是否付款" prop="purchase.ispay" filter-placement="bottom-end" :filters="[{ text: '未付款', value: 0 }, { text: '已付款', value: 1 }]" :filter-method="filterTag2">
+          <template slot-scope="scope" >
             <!-- 付款显示按钮 -->
-            <el-button :type="scope.row.purchase.ispay ? 'primary' : 'danger'" size="mini" disabled>{{scope.row.purchase.ispay ? '已付款' : '未付款'}}</el-button>
+            <el-tag  :type="scope.row.purchase.ispay ? 'primary' : 'danger'" size="closable" disabled>{{scope.row.purchase.ispay ? '已付款' : '未付款'}}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="合同开始时间" width="150px">
+        <el-table-column label="合同开始时间" width="150px" sortable prop="start_timeStr">
           <template slot-scope="scope">
             <i class="el-icon-time"></i>
             <span style="margin-left: 10px">{{ scope.row.start_timeStr}}</span>
           </template>
         </el-table-column>
-        <el-table-column label="合同结束时间" width="150px">
+        <el-table-column label="合同结束时间" width="150px" sortable>
           <template slot-scope="scope">
             <i class="el-icon-time"></i>
             <span style="margin-left: 10px">{{ scope.row.end_timeStr}}</span>
           </template>
         </el-table-column>
-        <el-table-column label="执行进度" width="200px">
+        <el-table-column label="执行进度" width="100px" prop="progress" filter-placement="bottom-end" :filters="[{ text: '未执行', value: 0 }, { text: '执行中', value: 1 }, { text: '已完成', value: 2 }]" :filter-method="filterTag" >
           <template slot-scope="scope">
             <!-- 显示发货图标 -->
-            <el-button :type="contractprogress[scope.row.progress]" plain disabled size="small">{{contractprogressStr[scope.row.progress]}}</el-button>
+            <el-tag  :type="contractprogress[scope.row.progress]" plain disabled size="closable" hit="true">{{contractprogressStr[scope.row.progress]}}</el-tag >
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
@@ -169,7 +179,7 @@ export default {
         // 当前的页数
         pagenum: 1,
         // 当前每页显示多少条数据
-        pagesize: 2
+        pagesize: 5
       },
       contractList: [],
       total: 0,
@@ -254,6 +264,22 @@ export default {
     this.getContractList()
   },
   methods: {
+    // 数组过滤 即搜索
+    filterQueryChange2 () {
+      const query = this.queryInfo.query
+      this.contractList = this.contractList.filter(item => {
+        // 合同编号 客户姓名  销售员姓名  就搜索3种
+        if ((item.id + '').includes(query) || item.customer.name.includes(query) || item.user.realname.includes(query)) {
+          return item
+        }
+      })
+    },
+    filterTag (value, row) {
+      return row.progress === value
+    },
+    filterTag2 (value, row) {
+      return row.purchase.ispay === value
+    },
     async getContractList () {
       const { data: res } = await this.$http.post('contract/getContractList', {
         query: this.queryInfo.query,
@@ -266,12 +292,12 @@ export default {
       this.contractList = res.data.contractList.list
       this.total = res.data.contractList.total
     },
-    // 监听 pagesize 改变的事件
+    // 监听 pagesize
     handleSizeChange (newSize) {
       this.queryInfo.pagesize = newSize
       this.getContractList()
     },
-    // 监听 页码值 改变的事件
+    // 监听页码值
     handleCurrentChange (newPage) {
       this.queryInfo.pagenum = newPage
       this.getContractList()
@@ -432,4 +458,10 @@ export default {
 </script>
 
 <style lang="less" scoped>
+  .el-select .el-input {
+    width: 130px;
+  }
+  .input-with-select .el-input-group__prepend {
+    background-color: #fff;
+  }
 </style>
