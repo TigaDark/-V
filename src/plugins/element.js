@@ -4,7 +4,7 @@ import {
   , FormItem
   , Input, Message, Container, Aside, Main, Header, Menu, MenuItem, Submenu, Breadcrumb, BreadcrumbItem, Card, Col, Row, Table
   , TableColumn, Switch
-  , Tooltip, Pagination, Dialog, Dropdown, DropdownItem, DropdownMenu, Avatar, Steps, Step, MessageBox, Timeline, TimelineItem, Tag, Select, Option } from 'element-ui'
+  , Tooltip, Pagination, Dialog, Dropdown, DropdownItem, DropdownMenu, Avatar, Steps, Step, MessageBox, Timeline, TimelineItem, Tag, Select, Option, DatePicker } from 'element-ui'
 
 Vue.use(Steps)
 Vue.use(Step)
@@ -39,5 +39,6 @@ Vue.use(TimelineItem)
 Vue.use(Tag)
 Vue.use(Select)
 Vue.use(Option)
+Vue.use(DatePicker)
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox

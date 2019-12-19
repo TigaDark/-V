@@ -8,6 +8,7 @@ import sale from '../components/sale/Sale'
 import goodsmanger from '../components/contract/GoodsManger'
 import buygoods from '../components/goods/BuyGoods'
 import sentgoods from '../components/goods/SentGoods'
+import customer from '../components/Customer/Customer'
 Vue.use(VueRouter)
 
 const routes = [
@@ -22,7 +23,8 @@ const routes = [
       { path: '/sale', component: sale },
       { path: '/goodsmanger', component: goodsmanger },
       { path: '/buygoods', component: buygoods },
-      { path: '/sentgoods', component: sentgoods }]
+      { path: '/sentgoods', component: sentgoods },
+      { path: '/customer', component: customer }]
   }
 
 ]

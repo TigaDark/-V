@@ -25,8 +25,8 @@
         <el-col :span="4">
         <el-button icon="el-icon-search" circle @click="getContractList"></el-button>
         </el-col>
-        <el-col :span="4" :offset="8">
-          <el-button type="primary" @click="addDialogVisible = true" round>合同录入</el-button>
+        <el-col :span="4" :offset="12">
+          <el-button type="primary" @click="addDialogVisible = true" round ><Icon type="md-add" />合同录入</el-button>
         </el-col>
       </el-row>
 
@@ -59,7 +59,7 @@
             <span style="margin-left: 10px">{{ scope.row.start_timeStr}}</span>
           </template>
         </el-table-column>
-        <el-table-column label="合同结束时间" width="150px" sortable>
+        <el-table-column label="合同结束时间" width="150px" sortable prop="end_timeStr">
           <template slot-scope="scope">
             <i class="el-icon-time"></i>
             <span style="margin-left: 10px">{{ scope.row.end_timeStr}}</span>
@@ -102,43 +102,42 @@
         </li>
       </ul>
     </el-dialog>
-
-    <!-- 添加用户的对话框 -->
-    <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
-      <!-- 内容主体区域 -->
-      <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
-        <el-form-item label="用户名" prop="username">
+    <!-- 合同录入 -->
+    <el-dialog title="合同录入" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
+      <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="110px">
+        <el-form-item label="采购清单编号" prop="purchaseid">
+          <el-input v-model="addForm.purchaseid" type="number" size="small"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
+        <el-form-item label="客户姓名" prop="customername" >
+          <el-input v-model="addForm.customername" disabled size="small"></el-input>
         </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-        </el-form-item>
-        <el-form-item label="手机" prop="mobile">
+        <el-form-item label="处理的销售员" prop="username">
+          <el-input v-model="addForm.username" size="small"></el-input>
         </el-form-item>
       </el-form>
       <!-- 底部区域 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="addDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addUser">确 定</el-button>
+        <el-button type="primary" @click="addContract">确 定</el-button>
       </span>
     </el-dialog>
 
-    <!-- 修改用户的对话框 -->
-    <el-dialog title="修改用户" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
-      <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px">
-        <el-form-item label="用户名">
-          <el-input v-model="editForm.username" disabled></el-input>
+    <!-- 修改合同 -->
+    <el-dialog title="修改合同" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
+      <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="110px">
+        <el-form-item label="采购清单编号" prop="purchaseid">
+          <el-input v-model="editForm.purchaseid" type="number" size="small"></el-input>
         </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="editForm.email"></el-input>
+        <el-form-item label="客户姓名" prop="customername" >
+          <el-input v-model="editForm.customername" disabled size="small"></el-input>
         </el-form-item>
-        <el-form-item label="手机" prop="mobile">
-          <el-input v-model="editForm.mobile"></el-input>
+        <el-form-item label="处理的销售员" prop="username">
+          <el-input v-model="editForm.username" size="small"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editUserInfo">确 定</el-button>
+        <el-button type="primary" @click="editContractInfo">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -147,31 +146,71 @@
 <script>
 export default {
   data () {
-    // 验证邮箱的规则
-    var checkEmail = (rule, value, cb) => {
-      // 验证邮箱的正则表达式
-      const regEmail = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(\.[a-zA-Z0-9_-])+/
-
-      if (regEmail.test(value)) {
-        // 合法的邮箱
+    // 验证采购
+    var checkPruchase = async (rule, value, cb) => {
+      const { data: res } = await this.$http.post('purchase/checkPurchase', this.$qs.stringify({
+        purchaseid: this.addForm.purchaseid
+      }))
+      if (res.data.purchase === null) {
+        return cb(new Error('该清单不存在！'))
+      }
+      this.addForm.customername = res.data.purchase.customer.name
+      if (res.code === 200) {
+        // 可以用的采购清单
+        this.addForm2.purchaseid = this.addForm.purchaseid
+        this.addForm2.customerid = res.data.purchase.customer.id
         return cb()
       }
 
-      cb(new Error('请输入合法的邮箱'))
+      cb(new Error(res.msg))
     }
-
-    // 验证手机号的规则
-    var checkMobile = (rule, value, cb) => {
-      // 验证手机号的正则表达式
-      const regMobile = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/
-
-      if (regMobile.test(value)) {
+    // 验证是否存在销售员
+    var checkUser = async (rule, value, cb) => {
+      const { data: res } = await this.$http.post('user/checkUser', this.$qs.stringify({
+        username: this.addForm.username
+      }))
+      if (res.code === 200) {
+        // 可以用的销售员
+        this.addForm2.userid = res.data.user.id
         return cb()
       }
 
-      cb(new Error('请输入合法的手机号'))
+      cb(new Error(res.msg))
     }
+    // 验证采购
+    var checkPruchase2 = async (rule, value, cb) => {
+      // 如果还是原来的 就不用管
+      if (this.editForm.purchaseid === this.editpurchaseid) {
+        return cb()
+      }
+      const { data: res } = await this.$http.post('purchase/checkPurchase', this.$qs.stringify({
+        purchaseid: this.editForm.purchaseid
+      }))
+      if (res.data.purchase === null) {
+        return cb(new Error('该清单不存在！'))
+      }
+      this.editForm.customername = res.data.purchase.customer.name
+      if (res.code === 200) {
+        // 可以用的采购清单
+        this.editForm2.purchaseid = this.editForm.purchaseid
+        this.editForm2.customerid = res.data.purchase.customer.id
+        return cb()
+      }
+      cb(new Error(res.msg))
+    }
+    // 验证是否存在销售员
+    var checkUser2 = async (rule, value, cb) => {
+      const { data: res } = await this.$http.post('user/checkUser', this.$qs.stringify({
+        username: this.editForm.username
+      }))
+      if (res.code === 200) {
+        // 可以用的销售员
+        this.editForm2.userid = res.data.user.id
+        return cb()
+      }
 
+      cb(new Error(res.msg))
+    }
     return {
       // 获取用户列表的参数对象
       queryInfo: {
@@ -199,55 +238,51 @@ export default {
         '1': '执行中',
         '2': '已完成'
       },
-      // 添加用户的表单数据
+      // 添加用户的表单数据 form2 用来提交id
       addForm: {
+        purchaseid: '',
         username: '',
-        password: '',
-        email: '',
-        mobile: ''
+        customername: ''
       },
-      // 添加表单的验证规则对象
+      addForm2: {
+        purchaseid: '',
+        userid: '',
+        customerid: ''
+      },
+      // 添加表单的验证
       addFormRules: {
+        purchaseid: [
+          { required: true, message: '请输入采购清单id', trigger: 'blur' },
+          { validator: checkPruchase, trigger: 'blur' }
+        ],
         username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' },
-          {
-            min: 3,
-            max: 10,
-            message: '用户名的长度在3~10个字符之间',
-            trigger: 'blur'
-          }
-        ],
-        password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
-          {
-            min: 6,
-            max: 15,
-            message: '用户名的长度在6~15个字符之间',
-            trigger: 'blur'
-          }
-        ],
-        email: [
-          { required: true, message: '请输入邮箱', trigger: 'blur' },
-          { validator: checkEmail, trigger: 'blur' }
-        ],
-        mobile: [
-          { required: true, message: '请输入手机号', trigger: 'blur' },
-          { validator: checkMobile, trigger: 'blur' }
+          { required: true, message: '请输入销售员姓名', trigger: 'blur' },
+          { validator: checkUser, trigger: 'blur' }
         ]
       },
       // 控制修改用户对话框的显示与隐藏
       editDialogVisible: false,
-      // 查询到的用户信息对象
-      editForm: {},
+      editForm: {
+        purchaseid: '',
+        username: '',
+        customername: ''
+      },
+      editForm2: {
+        id: '',
+        purchaseid: '',
+        userid: '',
+        customerid: ''
+      },
+      editpurchaseid: '',
       // 修改表单的验证规则对象
       editFormRules: {
-        email: [
-          { required: true, message: '请输入用户邮箱', trigger: 'blur' },
-          { validator: checkEmail, trigger: 'blur' }
+        purchaseid: [
+          { required: true, message: '请输入采购清单id', trigger: 'blur' },
+          { validator: checkPruchase2, trigger: 'blur' }
         ],
-        mobile: [
-          { required: true, message: '请输入用户手机', trigger: 'blur' },
-          { validator: checkMobile, trigger: 'blur' }
+        username: [
+          { required: true, message: '请输入销售员姓名', trigger: 'blur' },
+          { validator: checkUser2, trigger: 'blur' }
         ]
       },
       // 控制分配角色对话框的显示与隐藏
@@ -361,97 +396,56 @@ export default {
     addDialogClosed () {
       this.$refs.addFormRef.resetFields()
     },
-    // 点击按钮，添加新用户
-    addUser () {
+    // 点击按钮，录入合同
+    addContract () {
       this.$refs.addFormRef.validate(async valid => {
         if (!valid) return
-        // 可以发起添加用户的网络请求
-        const { data: res } = await this.$http.post('users', this.addForm)
+        const { data: res } = await this.$http.post('contract/addContract', this.addForm2)
 
-        if (res.meta.status !== 201) {
-          this.$message.error('添加用户失败！')
+        if (res.code !== 200) {
+          this.$message.error('录入失败！')
         }
 
-        this.$message.success('添加用户成功！')
-        // 隐藏添加用户的对话框
+        this.$message.success('合同录入成功！')
         this.addDialogVisible = false
         // 重新获取用户列表数据
-        this.getUserList()
+        this.getContractList()
       })
     },
     // 展示编辑用户的对话框
     async showEditDialog (row) {
-      this.editForm = row
+      this.editForm.customername = row.customer.name
+      this.editForm.purchaseid = row.purchase.id
+      this.editForm.username = row.user.realname
+      this.editForm2.id = row.id
+      this.editForm2.customerid = row.customer.id
+      this.editForm2.purchaseid = row.purchase.id
+      this.editForm2.userid = row.user.id
+      this.editpurchaseid = this.editForm2.purchaseid
       this.editDialogVisible = true
     },
     // 监听修改用户对话框的关闭事件
     editDialogClosed () {
       this.$refs.editFormRef.resetFields()
     },
-    // 修改用户信息并提交
-    editUserInfo () {
+    // 修改合同提交
+    editContractInfo () {
       this.$refs.editFormRef.validate(async valid => {
         if (!valid) return
         // 发起修改用户信息的数据请求
-        const { data: res } = await this.$http.put(
-          'users/' + this.editForm.id,
-          {
-            email: this.editForm.email,
-            mobile: this.editForm.mobile
-          }
-        )
+        const { data: res } = await this.$http.post('contract/editContract', this.editForm2)
 
-        if (res.meta.status !== 200) {
-          return this.$message.error('更新用户信息失败！')
+        if (res.code !== 200) {
+          return this.$message.error('更新合同信息失败！')
         }
 
         // 关闭对话框
         this.editDialogVisible = false
         // 刷新数据列表
-        this.getUserList()
+        this.getContractList()
         // 提示修改成功
-        this.$message.success('更新用户信息成功！')
+        this.$message.success('更新合同信息成功！')
       })
-    },
-    // 根据Id删除对应的用户信息
-    async removeUserById (id) {
-      // 弹框询问用户是否删除数据
-      const confirmResult = await this.$confirm(
-        '此操作将永久删除该用户, 是否继续?',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).catch(err => err)
-      // 上面一行是返回err信息
-      // 如果用户确认删除，则返回值为字符串 confirm
-      // 如果用户取消了删除，则返回值为字符串 cancel
-      // console.log(confirmResult)
-      if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
-      }
-      const { data: res } = await this.$http.delete('users/' + id)
-      if (res.meta.status !== 200) {
-        return this.$message.error('删除用户失败！')
-      }
-      this.$message.success('删除用户成功！')
-      this.getUserList()
-    },
-    // 展示分配角色的对话框
-    async setRole (userInfo) {
-      this.userInfo = userInfo
-
-      // 在展示对话框之前，获取所有角色的列表
-      const { data: res } = await this.$http.get('roles')
-      if (res.meta.status !== 200) {
-        return this.$message.error('获取角色列表失败！')
-      }
-
-      this.rolesList = res.data
-
-      this.setRoleDialogVisible = true
     }
   }
 }
