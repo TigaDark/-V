@@ -9,6 +9,7 @@ import goodsmanger from '../components/contract/GoodsManger'
 import buygoods from '../components/goods/BuyGoods'
 import sentgoods from '../components/goods/SentGoods'
 import customer from '../components/Customer/Customer'
+import order from '../components/contract/Orders'
 Vue.use(VueRouter)
 
 const routes = [
@@ -24,7 +25,8 @@ const routes = [
       { path: '/goodsmanger', component: goodsmanger },
       { path: '/buygoods', component: buygoods },
       { path: '/sentgoods', component: sentgoods },
-      { path: '/customer', component: customer }]
+      { path: '/customer', component: customer },
+      { path: '/order', component: order }]
   }
 
 ]

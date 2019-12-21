@@ -33,7 +33,7 @@
       <!-- 用户列表区域 -->
       <el-table :data="contractList" border stripe>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="合同编号" prop="id" sortable></el-table-column>
+        <el-table-column label="合同编号" prop="strid" sortable></el-table-column>
         <el-table-column label="客户姓名" prop="customer.name"></el-table-column>
         <el-table-column label="销售人姓名" prop="user.realname"></el-table-column>
         <el-table-column label="采购清单" width="100px">
@@ -47,12 +47,12 @@
         </template>
         </el-table-column>
         <el-table-column label="总金额" prop="totalmoney" sortable></el-table-column>
-        <el-table-column label="是否付款" prop="purchase.ispay" filter-placement="bottom-end" :filters="[{ text: '未付款', value: 0 }, { text: '已付款', value: 1 }]" :filter-method="filterTag2">
-          <template slot-scope="scope" >
-            <!-- 付款显示按钮 -->
-            <el-tag  :type="scope.row.purchase.ispay ? 'primary' : 'danger'" size="closable" disabled>{{scope.row.purchase.ispay ? '已付款' : '未付款'}}</el-tag>
-          </template>
-        </el-table-column>
+        <!--<el-table-column label="是否付款" prop="purchase.ispay" filter-placement="bottom-end" :filters="[{ text: '未付款', value: 0 }, { text: '已付款', value: 1 }]" :filter-method="filterTag2">-->
+          <!--<template slot-scope="scope" >-->
+            <!--&lt;!&ndash; 付款显示按钮 &ndash;&gt;-->
+            <!--<el-tag  :type="scope.row.purchase.ispay ? 'primary' : 'danger'" size="closable" disabled>{{scope.row.purchase.ispay ? '已付款' : '未付款'}}</el-tag>-->
+          <!--</template>-->
+        <!--</el-table-column>-->
         <el-table-column label="合同开始时间" width="150px" sortable prop="start_timeStr">
           <template slot-scope="scope">
             <i class="el-icon-time"></i>
@@ -79,10 +79,13 @@
             <!-- 执行合同按钮 -->
             <el-button type="warning" icon="el-icon-check" size="mini" @click="editContractProcess(scope.row)" :disabled="scope.row.progress!=0"></el-button>
             </el-tooltip>
-            <el-tooltip effect="dark" content="发货管理" placement="top" :enterable="false">
+            <!--<el-tooltip effect="dark" content="发货管理" placement="top" :enterable="false">-->
+              <!--&lt;!&ndash; 执行合同按钮 &ndash;&gt;-->
+              <!--<el-button type="danger" icon="el-icon-s-goods" size="mini" @click="goodsManger(scope.row)" :disabled="scope.row.progress==2"></el-button>-->
+            <!--</el-tooltip>-->
+            <el-tooltip effect="dark" content="生成合同清单" placement="top" :enterable="false">
               <!-- 执行合同按钮 -->
               <el-button type="danger" icon="el-icon-s-goods" size="mini" @click="goodsManger(scope.row)" :disabled="scope.row.progress==2"></el-button>
-
             </el-tooltip>
           </template>
         </el-table-column>
@@ -96,11 +99,55 @@
     <!-- 清单详情查看 -->
     <el-dialog title="采购清单详情" :visible.sync="goodsListDialogVisible" width="50%">
       <!-- 内容主体区域 -->
-      <ul>
-        <li :key="index" v-for="(goods,index) in goodsList">
-          <p>{{index+1}}. 商品名字：{{goods.goods.name}}    商品单价：{{goods.goods.price}}  购买数量：{{goods.quantity}}</p>
-        </li>
-      </ul>
+      <!--<ul>-->
+        <!--<li :key="index" v-for="(goods,index) in goodsList">-->
+          <!--<p>{{index+1}}. 商品名字：{{goods.goods.name}}    商品单价：{{goods.goods.price}} 合同购买数量：{{goods.quantity}}</p>-->
+        <!--</li>-->
+      <!--</ul>-->
+      <el-table :data="goodsList" border stripe>
+        <el-table-column type="index"></el-table-column>
+        <el-table-column label="商品名字" prop="goods.name"></el-table-column>
+        <el-table-column label="商品价格" prop="goods.price"></el-table-column>
+        <el-table-column label="合同购买数量" prop="quantity"></el-table-column>
+        <el-table-column label="合同未执行数量" prop="surplus"></el-table-column>
+        <el-table-column label="状态" prop="goodstatus" filter-placement="bottom-end" :filters="[{ text: '未发货', value: 0 }, { text: '发货中', value: 1 }, { text: '发货完成', value: 2 }]" :filter-method="filterTag3">
+          <template slot-scope="scope">
+            <!-- 显示发货图标 -->
+            <el-tag :type="goodstatuss[scope.row.goodstatus]" plain disabled size="closable" hit="true">{{goodstatussstr[scope.row.goodstatus]}}</el-tag>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+    <!-- 合同清单生成 -->
+    <el-dialog title="合同清单生成" :visible.sync="ordersDialogVisible" width="50%" @close="closeOrdersDialog" size="small">
+      <!-- 动态增加项目 -->
+      <el-form
+        ref="orderFormRef"
+        :inline="true"
+        label-width="80px"
+        :rules="rules"
+      >
+        <div v-for="(item, index) in orderForm.ordergoodsList" :key="index">
+          <el-form-item label="商品名称" :prop="'ordergoodsList.' + index + '.name'">
+            <el-select v-model="item.name" placeholder="请选择商品">
+              <el-option v-for="items in goodsList" :key="items.id" :label="items.goods.name" :value="items.goods.name"  ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="数量" :prop="'ordergoodsList.' + index + '.nums'" :rules="rules.Cnums">
+            <el-input v-model="item.nums"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <i class="el-icon-delete" @click="deleteItem(item, index)"></i>
+          </el-form-item>
+        </div>
+      </el-form>
+      <el-button @click="addItem" type="primary">增加</el-button>
+
+      <!-- 底部区域 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="ordersDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addOrders">确 定</el-button>
+      </span>
     </el-dialog>
     <!-- 合同录入 -->
     <el-dialog title="合同录入" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
@@ -212,6 +259,17 @@ export default {
       cb(new Error(res.msg))
     }
     return {
+      // 0-未发货 1-发货中 2-发货完成
+      goodstatuss: {
+        '0': 'warning',
+        '1': 'primary',
+        '2': 'info'
+      },
+      goodstatussstr: {
+        '0': '未发货',
+        '1': '发货中',
+        '2': '发货完成'
+      },
       // 获取用户列表的参数对象
       queryInfo: {
         query: '',
@@ -249,6 +307,10 @@ export default {
         userid: '',
         customerid: ''
       },
+      rules: {
+        Cname: { required: true, message: '商品名不能为空', trigger: 'blur' },
+        Cnums: { required: true, message: '数量不能为空', trigger: 'blur' }
+      },
       // 添加表单的验证
       addFormRules: {
         purchaseid: [
@@ -285,20 +347,53 @@ export default {
           { validator: checkUser2, trigger: 'blur' }
         ]
       },
-      // 控制分配角色对话框的显示与隐藏
-      setRoleDialogVisible: false,
       // 需要被分配角色的用户信息
       userInfo: {},
       // 所有角色的数据列表
       rolesList: [],
       // 已选中的角色Id值
-      selectedRoleId: ''
+      selectedRoleId: '',
+      ordersDialogVisible: false,
+      orderForm: {
+        contractid: '',
+        ordergoodsList: [{
+          name: '',
+          nums: ''
+        }]
+      }
     }
   },
   created () {
     this.getContractList()
   },
   methods: {
+    async addOrders () {
+      // 提交order
+      console.log(this.orderForm)
+      // 生成合同清单
+      const { data: res } = await this.$http.post('orders/addOrders', this.orderForm)
+      if (res.code !== 200) {
+        this.$message.error('生成合同清单失败！')
+      }
+      this.getContractList()
+      this.$message({
+        type: 'success',
+        message: '生成合同清单成功！'
+      })
+      this.ordersDialogVisible = false
+    },
+    addItem () {
+      this.orderForm.ordergoodsList.push({
+        name: '',
+        nums: ''
+      })
+    },
+    deleteItem (item, index) {
+      this.orderForm.ordergoodsList.splice(index, 1)
+    },
+    filterTag3 (value, row) {
+      return row.goodstatus === value
+    },
     // 数组过滤 即搜索
     filterQueryChange2 () {
       const query = this.queryInfo.query
@@ -339,12 +434,6 @@ export default {
     },
     // 用户确认执行合同
     async editContractProcess (row) {
-      if (row.purchase.ispay === 0) {
-        this.$confirm('该采购清单用户未付款，不能执行', '提示', {
-          confirmButtonText: '确定'
-        })
-        return
-      }
       // 询问用户是否确认执行
       const contractResult = await this.$confirm(
         '执行合同后将不能修改合同, 是否执行?',
@@ -377,20 +466,18 @@ export default {
     // 点击发货管理跳转界面
     goodsManger (row) {
       if (row.progress === 0) {
-        this.$confirm('该合同未执行，不能发货，请先执行合同', '提示', {
+        this.$confirm('该合同未执行，不能生成合同清单，请先执行合同', '提示', {
           confirmButtonText: '确定'
         })
       } else if (row.progress === 3) {
         this.$confirm('该合同已执行完毕，请处理其他合同', '提示', {
           confirmButtonText: '确定'
         })
-      } else if (row.purchase.ispay === 0) {
-        this.$confirm('该采购清单用户未支付，不能发货', '提示', {
-          confirmButtonText: '确定'
-        })
       } else if (row.progress === 1) {
-        this.$router.push({ path: '/goodsmanger', query: { purchaseid: row.purchase.id } })
+        this.ordersDialogVisible = true
       }
+      this.goodsList = row.purchase.goodsQuantityList
+      this.orderForm.contractid = row.id
     },
     // 监听添加用户对话框的关闭事件
     addDialogClosed () {
@@ -427,6 +514,9 @@ export default {
     // 监听修改用户对话框的关闭事件
     editDialogClosed () {
       this.$refs.editFormRef.resetFields()
+    },
+    closeOrdersDialog () {
+      this.$refs.orderFormRef.resetFields()
     },
     // 修改合同提交
     editContractInfo () {
