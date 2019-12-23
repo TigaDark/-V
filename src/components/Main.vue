@@ -59,7 +59,8 @@ export default {
         '7': 'iconfont icon-baobiao',
         '9': 'el-icon-s-goods',
         '13': 'iconfont icon-danju',
-        '14': 'el-icon-data-analysis'
+        '14': 'el-icon-data-analysis',
+        '20': 'el-icon-data-analysis'
       },
       // 是否折叠
       isCollapse: false,

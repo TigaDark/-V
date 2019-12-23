@@ -151,7 +151,15 @@ export default {
         value: '广东广州越秀仓库',
         label: '广东广州越秀仓库'
       }],
-      logisticsid: ''
+      logisticsid: '',
+      rows: '',
+      addbuygoodsForm: {
+        ordersgoodsid: 0,
+        goodsname: '',
+        goodsnums: '',
+        goodsmin: '',
+        minbuygoods: ''
+      }
     }
   },
   created () {
@@ -179,14 +187,28 @@ export default {
       if (res.code !== 200) {
         this.$message.error('确认发货失败！')
       }
-      this.$message({
-        type: 'success',
-        message: '确认发货成功!'
-      })
       this.confirmSentStatus = false
+      if (this.rows.ordersGood.goods.nums < this.rows.ordersGood.goods.minn) {
+        // 库存低于阈值 自动生成发货单
+        this.$message({
+          type: 'warning',
+          message: '本次发货导致库存低于阈值 系统将为您生成订货单用于进货!'
+        })
+        this.addbuygoodsForm.goodsname = this.rows.ordersGood.goods.name
+        this.addbuygoodsForm.goodsnums = this.rows.ordersGood.goods.goodsnums
+        this.addbuygoodsForm.goodsmin = this.rows.ordersGood.goods.goodsmin
+        this.addbuygoodsForm.minbuygoods = (this.rows.ordersGood.goods.minn - this.rows.ordersGood.goods.nums + 1)
+        this.$http.post('buyorder/addBuyOrder', this.addbuygoodsForm)
+      } else {
+        this.$message({
+          type: 'success',
+          message: '确认发货成功!'
+        })
+      }
       this.getInvoiceList()
     },
     async confirmSent (row) {
+      this.rows = row
       this.invoiceid = row.id
       this.logistics = row.customer
       this.confirmSentStatus = true

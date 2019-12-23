@@ -33,16 +33,14 @@
           </div>
         </el-col>
         <el-col :span="4">
-          <el-button icon="el-icon-search" circle @click="getgoodsticsBytime"></el-button>
+          <el-button icon="el-icon-search" circle @click="getSaleticsBytime"></el-button>
         </el-col>
-        <table border="1" style="margin-left: 25px;margin-top: 100px;width: 222px;">
-          <div  v-for="(value, key,index) in this.goodstics" :key="index">
-              <tr>
-                <th>商品名称：{{ key }}  销售额： {{ value }}</th>
-              </tr>
-          </div>
-        </table>
-
+        <!-- 客户列表区域 -->
+        <el-table :data="saletics" border stripe style="margin-top: 100px">
+          <el-table-column type="index"></el-table-column>
+          <el-table-column label="销售员" prop="user.realname"></el-table-column>
+          <el-table-column label="销售额" prop="totalmoney"></el-table-column>
+        </el-table>
       </el-row>
     </el-card>
 
@@ -91,38 +89,35 @@ export default {
         '1': '执行中',
         '2': '已完成'
       },
-      goodstics: '',
-      nametics: ''
+      saletics: '',
+      username: ''
     }
   },
   created () {
-    this.getgoodstics()
+    this.getSaletics()
   },
   methods: {
     deleteItem (item, index) {
       this.orderForm.ordergoodsList.splice(index, 1)
     },
-    async getgoodstics () {
-      console.log(this.strtime)
-      const { data: res } = await this.$http.post('contract/getgoodstics')
+    async getSaletics () {
+      this.username = window.sessionStorage.getItem('id')
+      const { data: res } = await this.$http.post('contract/getSaletics/' + this.username)
       if (res.code !== 200) {
         return this.$message.error('获取销售额失败！')
       }
-      this.nametics = res.data.nametics
-      this.goodstics = res.data.goodstics
-      console.log(this.goodstics)
+      this.saletics = res.data.saletics
     },
-    async getgoodsticsBytime () {
-      console.log(this.strtime[0])
-      const { data: res } = await this.$http.post('contract/getgoodsticsBytime', {
+    async getSaleticsBytime () {
+      this.username = window.sessionStorage.getItem('id')
+      const { data: res } = await this.$http.post('contract/getSaleticsBytime/' + this.username, {
         starttime: this.strtime[0],
         endtime: this.strtime[1]
       })
       if (res.code !== 200) {
         return this.$message.error('获取销售额失败！')
       }
-      this.nametics = res.data.nametics
-      this.goodstics = res.data.goodstics
+      this.saletics = res.data.saletics
     }
   }
 }

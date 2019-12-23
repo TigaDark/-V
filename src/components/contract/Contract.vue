@@ -119,7 +119,6 @@
         ref="orderFormRef"
         :inline="true"
         label-width="80px"
-        :rules="rules"
       >
         <div v-for="(item, index) in orderForm.ordergoodsList" :key="index">
           <el-form-item label="商品名称" :prop="'ordergoodsList.' + index + '.name'">
@@ -127,7 +126,7 @@
               <el-option v-for="items in goodsList" :key="items.id" :label="items.goods.name" :value="items.goods.name"  ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="数量" :prop="'ordergoodsList.' + index + '.nums'" :rules="rules.Cnums">
+          <el-form-item label="数量" :prop="'ordergoodsList.' + index + '.nums'">
             <el-input v-model="item.nums"></el-input>
           </el-form-item>
           <el-form-item>
@@ -303,7 +302,7 @@ export default {
       },
       rules: {
         Cname: { required: true, message: '商品名不能为空', trigger: 'blur' },
-        Cnums: { required: true, message: '数量不能为空', trigger: 'blur' }
+        nums: { required: true, message: '数量不能为空', trigger: 'blur' }
       },
       // 添加表单的验证
       addFormRules: {

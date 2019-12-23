@@ -14,6 +14,7 @@ import sales from '../components/sale/Sale'
 import totaltics from '../components/Statistics/Totaltics'
 import goodstics from '../components/Statistics/Goodstics'
 import customertics from '../components/Statistics/Customertics'
+import saletics from '../components/sale/SaleTics'
 Vue.use(VueRouter)
 
 const routes = [
@@ -27,6 +28,7 @@ const routes = [
       { path: '/contract', component: contract },
       { path: '/sale', component: sale },
       { path: '/sales', component: sales },
+      { path: '/saletics', component: saletics },
       { path: '/goodsmanger', component: goodsmanger },
       { path: '/buygoods', component: buygoods },
       { path: '/sentgoods', component: sentgoods },

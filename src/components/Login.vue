@@ -61,13 +61,14 @@ export default {
         // console.log(this.loginForm)
         if (!valid) return
         const { data: res } = await this.$http.post('user/login', this.loginForm)
-        if (res.code !== 200) return this.$message.error('登录失败！')
+        if (res.code !== 200) return this.$message.error(res.msg)
         this.$message.success('登录成功')
         // 将登录成功之后的 token，保存到客户端的 sessionStorage 中
         //  项目中出了登录之外的其他API接口，必须在登录之后才能访问
         //  token 只应在当前网站打开期间生效，所以将 token ,rid(以便查询菜单权限) 保存在 sessionStorage 中
         window.sessionStorage.setItem('token', res.data.token)
         window.sessionStorage.setItem('rid', res.data.user.role.id)
+        window.sessionStorage.setItem('id', res.data.user.id)
         window.sessionStorage.setItem('rolename', res.data.user.role.rolename)
         window.sessionStorage.setItem('username', res.data.user.realname)
         // 2. 通过编程式导航跳转到后台主页，路由地址是 /main
