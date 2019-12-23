@@ -4,12 +4,16 @@ import login from '../components/Login'
 import main from '../components/Main'
 import firts from '../components/first'
 import contract from '../components/contract/Contract'
-import sale from '../components/sale/Sale'
 import goodsmanger from '../components/contract/GoodsManger'
 import buygoods from '../components/goods/BuyGoods'
 import sentgoods from '../components/goods/SentGoods'
 import customer from '../components/Customer/Customer'
 import order from '../components/contract/Orders'
+import sale from '../components/sale/SaleContract'
+import sales from '../components/sale/Sale'
+import totaltics from '../components/Statistics/Totaltics'
+import goodstics from '../components/Statistics/Goodstics'
+import customertics from '../components/Statistics/Customertics'
 Vue.use(VueRouter)
 
 const routes = [
@@ -22,10 +26,14 @@ const routes = [
       { path: '/first', component: firts },
       { path: '/contract', component: contract },
       { path: '/sale', component: sale },
+      { path: '/sales', component: sales },
       { path: '/goodsmanger', component: goodsmanger },
       { path: '/buygoods', component: buygoods },
       { path: '/sentgoods', component: sentgoods },
       { path: '/customer', component: customer },
+      { path: '/totaltics', component: totaltics },
+      { path: '/goodstics', component: goodstics },
+      { path: '/customertics', component: customertics },
       { path: '/order', component: order }]
   }
 

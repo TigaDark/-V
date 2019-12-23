@@ -5,6 +5,7 @@
       <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>合同清单管理</el-breadcrumb-item>
       <el-breadcrumb-item>合同清单订购清单管理</el-breadcrumb-item>
+      <el-breadcrumb-item>发货管理</el-breadcrumb-item>
     </el-breadcrumb>
 
     <!-- 卡片视图区域 -->
@@ -37,12 +38,7 @@
         <el-table-column label="所属合同编号" prop="contract.strid"></el-table-column>
         <el-table-column label="客户姓名" prop="contract.customer.name"></el-table-column>
         <el-table-column label="销售人姓名" prop="contract.user.realname"></el-table-column>
-        <!--<el-table-column label="是否付款" prop="ordersGoodList.ispay" filter-placement="bottom-end" :filters="[{ text: '未付款', value: 0 }, { text: '已付款', value: 1 }]" :filter-method="filterTag2">-->
-          <!--<template slot-scope="scope" >-->
-            <!--&lt;!&ndash; 付款显示按钮 &ndash;&gt;-->
-            <!--<el-tag  :type="scope.row.purchase.ispay ? 'primary' : 'danger'" size="closable" disabled>{{scope.row.purchase.ispay ? '已付款' : '未付款'}}</el-tag>-->
-          <!--</template>-->
-        <!--</el-table-column>-->
+
         <el-table-column label="执行进度" width="100px" prop="progress" filter-placement="bottom-end" :filters="[{ text: '进行中', value: 0 }, { text: '已完成', value: 1 }]" :filter-method="filterTag" >
           <template slot-scope="scope">
             <!-- 显示发货图标 -->
@@ -228,6 +224,7 @@ export default {
           confirmButtonText: '确定'
         })
       }
+      this.$router.push({ path: '/goodsmanger', query: { ordersid: row.id } })
     },
     // 监听添加用户对话框的关闭事件
     addDialogClosed () {

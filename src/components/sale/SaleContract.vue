@@ -20,13 +20,10 @@
               <!--<el-button slot="append" icon="el-icon-search"></el-button>-->
             <!--</el-input>-->
         <el-col :span="4">
-          <el-input placeholder="请输入编号或客户销售员姓名" v-model="queryInfo.query" clearable @clear="getContractList" @input="filterQueryChange2"></el-input>
+          <el-input placeholder="请输入编号或客户销售员姓名" v-model="queryInfo.query" clearable @clear="getSaleContractList" @input="filterQueryChange2"></el-input>
         </el-col>
         <el-col :span="4">
-        <el-button icon="el-icon-search" circle @click="getContractList"></el-button>
-        </el-col>
-        <el-col :span="4" :offset="12">
-          <el-button type="primary" @click="addDialogVisible = true" round ><Icon type="md-add" />合同录入</el-button>
+        <el-button icon="el-icon-search" circle @click="getSaleContractList"></el-button>
         </el-col>
       </el-row>
 
@@ -69,24 +66,6 @@
           <template slot-scope="scope">
             <!-- 显示发货图标 -->
             <el-tag  :type="contractprogress[scope.row.progress]" plain disabled size="closable" hit="true">{{contractprogressStr[scope.row.progress]}}</el-tag >
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180">
-          <template slot-scope="scope">
-            <!-- 修改按钮 -->
-            <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row)" :disabled="scope.row.progress!=0"></el-button>
-            <el-tooltip effect="dark" content="执行合同" placement="top" :enterable="false">
-            <!-- 执行合同按钮 -->
-            <el-button type="warning" icon="el-icon-check" size="mini" @click="editContractProcess(scope.row)" :disabled="scope.row.progress!=0"></el-button>
-            </el-tooltip>
-            <!--<el-tooltip effect="dark" content="发货管理" placement="top" :enterable="false">-->
-              <!--&lt;!&ndash; 执行合同按钮 &ndash;&gt;-->
-              <!--<el-button type="danger" icon="el-icon-s-goods" size="mini" @click="goodsManger(scope.row)" :disabled="scope.row.progress==2"></el-button>-->
-            <!--</el-tooltip>-->
-            <el-tooltip effect="dark" content="生成合同清单" placement="top" :enterable="false">
-              <!-- 执行合同按钮 -->
-              <el-button type="danger" icon="el-icon-s-goods" size="mini" @click="goodsManger(scope.row)" :disabled="scope.row.progress==2"></el-button>
-            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -354,11 +333,12 @@ export default {
           name: '',
           nums: ''
         }]
-      }
+      },
+      username: ''
     }
   },
   created () {
-    this.getContractList()
+    this.getSaleContractList()
   },
   methods: {
     async addOrders () {
@@ -369,7 +349,7 @@ export default {
       if (res.code !== 200) {
         this.$message.error('生成合同清单失败！')
       }
-      this.getContractList()
+      this.getSaleContractList()
       this.$message({
         type: 'success',
         message: '生成合同清单成功！'
@@ -404,11 +384,13 @@ export default {
     filterTag2 (value, row) {
       return row.purchase.ispay === value
     },
-    async getContractList () {
-      const { data: res } = await this.$http.post('contract/getContractList', {
+    async getSaleContractList () {
+      this.username = window.sessionStorage.getItem('username')
+      const { data: res } = await this.$http.post('contract/getSaleContractList', {
         query: this.queryInfo.query,
         pagenum: this.queryInfo.pagenum,
-        pagesize: this.queryInfo.pagesize
+        pagesize: this.queryInfo.pagesize,
+        username: this.username
       })
       if (res.code !== 200) {
         return this.$message.error('获取合同列表失败！')
@@ -419,12 +401,12 @@ export default {
     // 监听 pagesize
     handleSizeChange (newSize) {
       this.queryInfo.pagesize = newSize
-      this.getContractList()
+      this.getSaleContractList()
     },
     // 监听页码值
     handleCurrentChange (newPage) {
       this.queryInfo.pagenum = newPage
-      this.getContractList()
+      this.getSaleContractList()
     },
     // 用户确认执行合同
     async editContractProcess (row) {
@@ -446,7 +428,7 @@ export default {
       if (res.code !== 200) {
         this.$message.error('执行合同失败！')
       }
-      this.getContractList()
+      this.getSaleContractList()
       this.$message({
         type: 'success',
         message: '执行合同成功'
@@ -490,7 +472,7 @@ export default {
         this.$message.success('合同录入成功！')
         this.addDialogVisible = false
         // 重新获取用户列表数据
-        this.getContractList()
+        this.getSaleContractList()
       })
     },
     // 展示编辑用户的对话框
@@ -526,7 +508,7 @@ export default {
         // 关闭对话框
         this.editDialogVisible = false
         // 刷新数据列表
-        this.getContractList()
+        this.getSaleContractList()
         // 提示修改成功
         this.$message.success('更新合同信息成功！')
       })

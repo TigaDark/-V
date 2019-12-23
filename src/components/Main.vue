@@ -57,7 +57,9 @@ export default {
         '2': 'iconfont icon-users',
         '3': 'iconfont icon-user',
         '7': 'iconfont icon-baobiao',
-        '9': 'el-icon-s-goods'
+        '9': 'el-icon-s-goods',
+        '13': 'iconfont icon-danju',
+        '14': 'el-icon-data-analysis'
       },
       // 是否折叠
       isCollapse: false,

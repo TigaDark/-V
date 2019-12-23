@@ -11,12 +11,18 @@
     <!-- 卡片视图区域 -->
     <el-card>
       <!-- 用户列表区域 -->
-      <p>采购清单顾客： {{purchase.customer.name}}</p>
-      <el-table :data="purchase.goodsQuantityList" border stripe>
+      <!--<p>采购清单顾客： {{orders.customer.name}}</p>-->
+      <el-table :data="orders.ordersGoodList" border stripe>
         <el-table-column type="index"></el-table-column>
         <el-table-column label="商品名称" prop="goods.name"></el-table-column>
         <el-table-column label="单价" prop="goods.price"></el-table-column>
-        <el-table-column label="购买数量" prop="quantity"></el-table-column>
+        <el-table-column label="合同清单数量" prop="quantity"></el-table-column>
+        <el-table-column label="是否付款" prop="ispay" filter-placement="bottom-end" :filters="[{ text: '未付款', value: 0 }, { text: '已付款', value: 1 }]" :filter-method="filterTag2">
+        <template slot-scope="scope" >
+        <!-- 付款显示按钮 -->
+        <el-tag  :type="scope.row.ispay ? 'primary' : 'danger'" size="closable" disabled>{{scope.row.ispay ? '已付款' : '未付款'}}</el-tag>
+        </template>
+        </el-table-column>
         <el-table-column label="库存量" prop="goods.nums"></el-table-column>
         <el-table-column label="库存阈值" prop="goods.minn"></el-table-column>
         <el-table-column label="发货状态" prop="goodstatus" filter-placement="bottom-end" :filters="[{ text: '未发货', value: 0 }, { text: '发货中', value: 1 }, { text: '发货完成', value: 2 }, { text: '进货中',value: 3 }]" :filter-method="filterTag2">
@@ -80,7 +86,7 @@ export default {
     }
 
     return {
-      purchase: '',
+      orders: '',
       // 0-未发货 1-发货中 2-发货完成
       goodstatuss: {
         '0': 'warning',
@@ -96,7 +102,7 @@ export default {
       },
       buyGoods: false,
       addbuygoodsForm: {
-        goodsquantityid: '',
+        ordersgoodsid: '',
         goodsname: '',
         goodsnums: '',
         goodsmin: '',
@@ -112,22 +118,29 @@ export default {
     }
   },
   created () {
-    this.getGoodsList(this.$route.query.purchaseid)
+    this.getGoodsList(this.$route.query.ordersid)
   },
   methods: {
     filterTag2 (value, row) {
       return row.goodstatus === value
     },
     async getGoodsList (id) {
-      const { data: res } = await this.$http.post('purchase/getGoodsListByPurchaseId', this.$qs.stringify({
-        id: id
+      const { data: res } = await this.$http.post('orders/getGoodsListByOrdersId', this.$qs.stringify({
+        ordersid: id
       }))
       if (res.code !== 200) {
-        return this.$message.error('获取货物列表失败！')
+        return this.$message.error('获取合同清单列表失败！')
       }
-      this.purchase = res.data.purchases
+      this.orders = res.data.orders
     },
     async createSentGoodsOreder (row) {
+      // 未付款不能发货
+      if (row.ispay === 0) {
+        this.$confirm('抱歉，客户未发货不能生成发货单，请通知客户付款', '提示', {
+          confirmButtonText: '确定'
+        })
+        return
+      }
       // 购买数量大于库存量 不能发货 要先生成订货单
       if (row.quantity > row.goods.nums) {
         this.$confirm('抱歉，库存不足不能发货，请先生成订货单订货', '提示', {
@@ -147,7 +160,7 @@ export default {
       if (goodsResult !== 'confirm') {
         return this.$message.info('已取消生成发货单！')
       }
-      const { data: res } = await this.$http.post('purchase/createSentGoodsOreder', row)
+      const { data: res } = await this.$http.post('orders/createSentGoodsOreder', row)
       if (res.code !== 200) {
         this.$message.error('生成发货单失败！')
       }
@@ -155,7 +168,7 @@ export default {
         type: 'success',
         message: '发货单已生成!'
       })
-      this.getGoodsList(this.$route.query.purchaseid)
+      this.getGoodsList(this.$route.query.ordersid)
     },
     // 点击确认，生成订货单
     addbuyGoods () {
@@ -172,12 +185,12 @@ export default {
         this.$message.success('生成进货单成功！')
         // 隐藏
         // 重新获表数据
-        this.getGoodsList(this.$route.query.purchaseid)
+        this.getGoodsList(this.$route.query.ordersid)
       })
     },
     // 显示订货单
     async createBuyGoodsOreder (row) {
-      this.addbuygoodsForm.goodsquantityid = row.id
+      this.addbuygoodsForm.ordersgoodsid = row.id
       this.addbuygoodsForm.goodsname = row.goods.name
       this.addbuygoodsForm.goodsnums = row.goods.nums
       this.addbuygoodsForm.goodsmin = row.goods.minn

@@ -20,10 +20,11 @@
       <!-- 用户列表区域 -->
       <el-table :data="buyorderList" border stripe>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="清单id" prop="goodsquantityid"></el-table-column>
+        <el-table-column label="清单id" prop="ordersgoodsid"></el-table-column>
         <el-table-column label="商品名称" prop="goodsname"></el-table-column>
         <el-table-column label="最小进货数量" prop="minquantity"></el-table-column>
         <el-table-column label="实际进货量" prop="realquantity"></el-table-column>
+        <el-table-column label="剩余最小进货量" prop="surplusquantity"></el-table-column>
         <el-table-column label="进货状态" prop="isbuy" filter-placement="bottom-end" :filters="[{ text: '未进货', value: 0 }, { text: '进货完成', value: 1 }]" :filter-method="filterTag2">
           <template slot-scope="scope">
             <!-- 显示发货图标 -->
@@ -33,7 +34,7 @@
         <el-table-column label="操作" width="180px">
           <template slot-scope="scope">
             <el-tooltip effect="dark" content="确定进货" placement="top" :enterable="false">
-              <el-button type="warning" icon="el-icon-tickets" size="mini" :disabled="scope.row.isbuy !=0" @click="createBuyGoodsOreder(scope.row)" round></el-button>
+              <el-button type="warning" icon="el-icon-tickets" size="mini" :disabled="scope.row.isbuy ==2" @click="createBuyGoodsOreder(scope.row)" round></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -46,8 +47,8 @@
     <el-dialog title="进货单" :visible.sync="buyGoods" width="50%" @close="buyGoodsClosed">
       <!-- 内容主体区域 -->
       <el-form :model="addbuygoodsForm" :rules="addbuygoodsFormRules" ref="addbuygoodsFormRef" size="small" label-width="120px">
-        <el-form-item label="清单id" prop="goodsquantityid">
-          <el-input v-model="addbuygoodsForm.goodsquantityid" disabled ></el-input>
+        <el-form-item label="进货单id" prop="id">
+          <el-input v-model="addbuygoodsForm.id" disabled ></el-input>
         </el-form-item>
         <el-form-item label="商品名称" prop="goodsname">
           <el-input v-model="addbuygoodsForm.goodsname" disabled ></el-input>
@@ -74,13 +75,10 @@ export default {
   data () {
     // 进货单的输入最小值
     var Checkminbuygoods = (rule, value, cb) => {
-      // 验证邮箱的正则表达式
-      const regMin = this.minquantity
-      if (regMin + '' <= value) {
+      if (1 + '' <= value) {
         return cb()
       }
-
-      cb(new Error('数量不能少于默认最小值: ' + this.minquantity))
+      cb(new Error('请输入合法的数量 '))
     }
     return {
       // 获取发货单
@@ -96,11 +94,13 @@ export default {
       // 0-未发货  1-发货完成
       goodstatuss: {
         '0': 'warning',
-        '1': 'info'
+        '1': 'primary',
+        '2': 'info'
       },
       goodstatussstr: {
         '0': '未进货',
-        '1': '进货完成'
+        '1': '进货中',
+        '2': '进货完成'
       },
       buyGoods: false,
       addbuygoodsForm: {
@@ -108,7 +108,8 @@ export default {
         goodsquantityid: '',
         goodsname: '',
         minquantity: '',
-        realquantity: ''
+        realquantity: '',
+        surplusquantity: ''
       },
       addbuygoodsFormRules: {
         realquantity: [
@@ -175,10 +176,11 @@ export default {
     // 显示订货单
     async createBuyGoodsOreder (row) {
       this.addbuygoodsForm.id = row.id
-      this.addbuygoodsForm.goodsquantityid = row.goodsquantityid
+      this.addbuygoodsForm.goodsquantityid = row.ordersgoodsid
       this.addbuygoodsForm.goodsname = row.goodsname
       this.addbuygoodsForm.minquantity = row.minquantity
       this.addbuygoodsForm.realquantity = row.minquantity
+      this.addbuygoodsForm.realquantity = row.surplusquantity
       this.minquantity = row.minquantity
       this.buyGoods = true
     },

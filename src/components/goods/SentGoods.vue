@@ -19,13 +19,13 @@
       </el-row>
       <el-table :data="invoiceList" border stripe>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="商品名称" prop="goodsQuantity.goods.name"></el-table-column>
+        <el-table-column label="商品名称" prop="ordersGood.goods.name"></el-table-column>
         <el-table-column label="客户名称" prop="customer.name"></el-table-column>
         <el-table-column label="客户发货地址" prop="customer.address"></el-table-column>
-        <el-table-column label="单价" prop="goodsQuantity.goods.price"></el-table-column>
-        <el-table-column label="购买数量" prop="goodsQuantity.quantity"></el-table-column>
-        <el-table-column label="当前库存量" prop="goodsQuantity.goods.nums"></el-table-column>
-        <el-table-column label="库存阈值" prop="goodsQuantity.goods.minn"></el-table-column>
+        <el-table-column label="单价" prop="ordersGood.goods.price"></el-table-column>
+        <el-table-column label="发货数量" prop="ordersGood.quantity"></el-table-column>
+        <el-table-column label="当前库存量" prop="ordersGood.goods.nums"></el-table-column>
+        <el-table-column label="库存阈值" prop="ordersGood.goods.minn"></el-table-column>
         <el-table-column label="发货状态" prop="issent" filter-placement="bottom-end" :filters="[{ text: '未发货', value: 0 }, { text: '发货完成', value: 1 }]" :filter-method="filterTag2">
           <template slot-scope="scope">
             <!-- 显示发货图标 -->
@@ -48,12 +48,47 @@
       </el-pagination>
     </el-card>
     <!-- 物流状态显示烂 -->
-    <el-dialog title="物流进度" :visible.sync="logisticsProgressstatus" width="40%">
+    <el-dialog :title="'物流单号: '+logisticsid" :visible.sync="logisticsProgressstatus" width="40%">
       <el-timeline>
         <el-timeline-item v-for="(location, index) in logisticsProgresss" :key="index" :timestamp="location.timesStr" :color="(index+1) === logisticsProgresss.length? '#0bbd87':'#c1c1c1'">
           {{location.context}}
         </el-timeline-item>
       </el-timeline>
+    </el-dialog>
+    <el-dialog title="确认发货信息" :visible.sync="confirmSentStatus" width="40%" @close="buyGoodsClosed">
+      <el-form :model="logistics" :rules="logisticsFormRules" ref="logisticsFormRef" size="small" label-width="120px">
+        <el-form-item label="客户姓名" prop="customer.name">
+          <el-input v-model="logistics.name" disabled ></el-input>
+        </el-form-item>
+        <el-form-item label="客户地址" prop="customer.address">
+          <el-input  v-model="logistics.address" disabled ></el-input>
+        </el-form-item>
+        <el-form-item label="发货仓库地址" prop="customer.address">
+        <el-select v-model="addLogistics.start_place" clearable placeholder="请选择">
+          <el-option
+            v-for="item in start_place"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+        </el-form-item>
+        <el-form-item label="发货快递" prop="customer.address">
+        <el-select v-model="addLogistics.company" clearable placeholder="请选择">
+          <el-option
+            v-for="item in company"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+        </el-form-item>
+        </el-form>
+      <!-- 底部区域 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="buyGoodsClosed2">取 消</el-button>
+        <el-button type="primary" @click="addsentGoods">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -82,7 +117,41 @@ export default {
         '1': '发货完成'
       },
       logisticsProgressstatus: false,
-      logisticsProgresss: []
+      logisticsProgresss: [],
+      confirmSentStatus: false,
+      logistics: {},
+      addLogistics: {
+        start_place: '',
+        company: ''
+      },
+      invoiceid: '',
+      company: [{
+        value: '顺丰快递',
+        label: '顺丰快递'
+      }, {
+        value: '圆通快递',
+        label: '圆通快递'
+      }, {
+        value: '韵达快递',
+        label: '韵达快递'
+      }, {
+        value: '中通快递',
+        label: '中通快递'
+      }, {
+        value: '申通快递',
+        label: '申通快递'
+      }],
+      start_place: [{
+        value: '广东东莞松山湖仓库',
+        label: '广东东莞松山湖仓库'
+      }, {
+        value: '广东深圳龙华仓库',
+        label: '广东深圳龙华仓库'
+      }, {
+        value: '广东广州越秀仓库',
+        label: '广东广州越秀仓库'
+      }],
+      logisticsid: ''
     }
   },
   created () {
@@ -104,20 +173,9 @@ export default {
       this.invoiceList = res.data.invoiceList.list
       this.total = res.data.invoiceList.total
     },
-    async confirmSent (row) {
-      const sentGoodsResult = await this.$confirm(
-        '确认货物已经发出?',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).catch(err => err)
-      if (sentGoodsResult !== 'confirm') {
-        return this.$message.info('取消确认！')
-      }
-      const { data: res } = await this.$http.post('invoice/confirmSent', row)
+    async addsentGoods () {
+      // 不能直接确认
+      const { data: res } = await this.$http.post('invoice/confirmSent/' + this.invoiceid, this.addLogistics)
       if (res.code !== 200) {
         this.$message.error('确认发货失败！')
       }
@@ -125,7 +183,13 @@ export default {
         type: 'success',
         message: '确认发货成功!'
       })
+      this.confirmSentStatus = false
       this.getInvoiceList()
+    },
+    async confirmSent (row) {
+      this.invoiceid = row.id
+      this.logistics = row.customer
+      this.confirmSentStatus = true
     },
     async showLogistics (row) {
       const { data: res } = await this.$http.post('logistics/showLogistics', this.$qs.stringify({
@@ -135,6 +199,7 @@ export default {
         return this.$message.error('获取物流信息失败！')
       }
       this.logisticsProgressstatus = true
+      this.logisticsid = row.logisticsid
       this.logisticsProgresss = res.data.logisticsList
     },
     // 监听 pagesize 改变的事件
@@ -147,6 +212,16 @@ export default {
     handleCurrentChange (newPage) {
       this.queryInfo.pagenum = newPage
       this.getInvoiceList()
+    },
+    // 监听对话框的关闭事件
+    buyGoodsClosed () {
+      this.addLogistics.company = ''
+      this.addLogistics.start_place = ''
+    },
+    buyGoodsClosed2 () {
+      this.addLogistics.company = ''
+      this.addLogistics.start_place = ''
+      this.confirmSentStatus = false
     }
   }
 }

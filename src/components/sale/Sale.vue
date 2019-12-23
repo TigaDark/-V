@@ -80,32 +80,32 @@
     <!-- 修改销售员的对话框 -->
     <el-dialog title="修改销售员" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
       <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="120px">
-          <el-form-item label="账户" prop="username">
-            <el-input v-model="editForm.username" disabled></el-input>
-          </el-form-item>
-          <el-form-item label="姓名" prop="realname">
-            <el-input v-model="editForm.realname" disabled></el-input>
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="editForm.email"></el-input>
-          </el-form-item>
-          <el-form-item label="手机" prop="phone">
-            <el-input v-model="editForm.phone"></el-input>
-          </el-form-item>
-          <el-form-item label="地址" prop="address">
-            <el-input v-model="editForm.address"></el-input>
-          </el-form-item>
-          <el-form-item label="入职时间" prop="entrytime">
-            <el-date-picker
-              v-model="editForm.entrytime"
-              align="right"
-              type="date"
-              placeholder="选择日期"
-              :picker-options="pickerOptions"
-              value-format="timestamp"
-            >
-            </el-date-picker>
-          </el-form-item>
+        <el-form-item label="账户" prop="username">
+          <el-input v-model="editForm.username" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="姓名" prop="realname">
+          <el-input v-model="editForm.realname" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="phone">
+          <el-input v-model="editForm.phone"></el-input>
+        </el-form-item>
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="editForm.address"></el-input>
+        </el-form-item>
+        <el-form-item label="入职时间" prop="entrytime">
+          <el-date-picker
+            v-model="editForm.entrytime"
+            align="right"
+            type="date"
+            placeholder="选择日期"
+            :picker-options="pickerOptions"
+            value-format="timestamp"
+          >
+          </el-date-picker>
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
